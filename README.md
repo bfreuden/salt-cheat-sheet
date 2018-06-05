@@ -1,11 +1,14 @@
 
 Salt documentation and getting started:
-[https://docs.saltstack.com/en/latest/]
-[https://docs.saltstack.com/en/getstarted/]
+
+https://docs.saltstack.com/en/latest/
+
+https://docs.saltstack.com/en/getstarted/
 
 # Installation
 
-Examples below are on Ubuntu 18.04
+Examples below are on Ubuntu 18.04.
+
 Everything must (?) be run as root.
 
 ## Salt master
@@ -15,7 +18,7 @@ root@saltmaster:~$ apt-get install salt-master
 ```
 
 **WARNING**
-Note that the salt-master install will create the /srv directory (with the root:root owner it seems)
+Note that the salt-master install will create the */srv* directory (with the root:root owner it seems)
 so chown it to salt:salt otherwise you will get silent errors when applying states!
 ```shell
 root@saltmaster:~$ chown -R salt:salt /srv
@@ -44,7 +47,7 @@ Having a DNS is certainly a good idea instead of having IP adresses hardcoded in
 
 ## Key configuration
 
-See [https://docs.saltstack.com/en/latest/ref/configuration/index.html]
+See https://docs.saltstack.com/en/latest/ref/configuration/index.html
 
 Get the public key of the master:
 ```shell 
@@ -87,7 +90,7 @@ salt '*' test.ping
 ```
 
 # Remote command execution
-See [https://docs.saltstack.com/en/getstarted/fundamentals/remotex.html]
+See https://docs.saltstack.com/en/getstarted/fundamentals/remotex.html
 
 Run commands on all machines:
 ```shell 
@@ -110,7 +113,7 @@ root@saltmaster:~$ salt '*' network.interfaces
 ```
 
 # Targetting
-See [https://docs.saltstack.com/en/getstarted/fundamentals/targeting.html]
+See https://docs.saltstack.com/en/getstarted/fundamentals/targeting.html
 
 targetting specific machines:
 ```shell 
@@ -147,16 +150,22 @@ root@saltmaster:~$ salt-cp --chunked '*' ~/files.zip /tmp/
 
 # grains
 
+See https://docs.saltstack.com/en/latest/topics/grains/
+
 Grains are properties either got by Salt from the env, or manually set.
-listing grains (see https://docs.saltstack.com/en/latest/topics/grains/):
+
+Listing grains:
 ```shell 
 root@saltmaster:~$ salt '*' grains.ls
 root@saltmaster:~$ salt '*' grains.items
 ```
 
-# states
+# States
 
-Salt configuration files are in YAML, so you probably want to have a look at this getting started: [http://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html]
+Salt configuration files are in YAML, so you probably want to have a look at this getting started: 
+
+http://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+
 And you probably want to install a YAML validator:
 
 ```shell 
@@ -198,7 +207,7 @@ root@saltmaster:~$ salt 'mediacenter' state.apply
 ## The top file
 
 
-The top.sls file has to be located by default in /srv/salt/top.sls
+The top.sls file has to be located by default in */srv/salt/top.sls*
 It is used to define which state has to be applied on which minions:
 ```yaml
 ---
@@ -228,13 +237,15 @@ root@saltmaster:~$ salt 'minion' state.show_top
 ```
 
 get a report of dependency versions:
-salt-call --versions-report
+```shell 
+root@saltmaster:~$ salt-call --versions-report
+```
 
 # Jinja temlates
 
 TO BE DONE
 
-See [http://jinja.pocoo.org/docs/2.10/templates/]
+See http://jinja.pocoo.org/docs/2.10/templates/
 
 validating a jinja file can be done using the slsutil.renderer module:
 ```shell 
