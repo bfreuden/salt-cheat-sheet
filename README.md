@@ -143,14 +143,14 @@ targetting using a combination:
 root@saltmaster:~$ salt -C 'G@os:Ubuntu and *minion or S@192.168.50.*' test.ping
 ```
 
-# copying files
+# Copying files
 
 copying a ~/files.zip file (can large with --chunked) in the /tmp/ directory of minions:
 ```shell 
 root@saltmaster:~$ salt-cp --chunked '*' ~/files.zip /tmp/
 ```
 
-# grains
+# Grains
 
 See https://docs.saltstack.com/en/latest/topics/grains/
 
@@ -161,6 +161,10 @@ Listing grains:
 root@saltmaster:~$ salt '*' grains.ls
 root@saltmaster:~$ salt '*' grains.items
 ```
+
+# Pillars
+
+(TDB)
 
 # States
 
