@@ -196,12 +196,12 @@ Let's describe that file a little bit:
 # (It seems that it has to be unique if you have many of them).
 # Sometimes that ID can be used by the module as a parameter.
 install_network_packages:
-  # that state is to be implemented by the 'pkg' state
+  # Here we are using the 'pkg' state:
   # (see https://docs.saltstack.com/en/latest/ref/states/all/salt.states.pkg.html)
-  # and it is implemented by one of the pkg modules
+  # It is implemented by one of the pkg modules:
   # (see https://docs.saltstack.com/en/latest/ref/modules/all/salt.modules.pkg.html)
-  # and you want packages to be installed (pkg.installed).
-  # You could specify pkg.removed for instance.
+  # Here you want packages to be installed (pkg.installed), but 
+  # you could specify pkg.removed for instance.
   # You can also use the pkg state to add a custom repository.
   pkg.installed:
     # Then you have the list of "parameters" of the module
