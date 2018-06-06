@@ -162,7 +162,7 @@ root@saltmaster:~$ salt '*' grains.items
 
 # States
 
-Salt configuration files are in YAML, so you probably want to have a look at this getting started: 
+Salt state files are in YAML, so you probably want to have a look at this getting started: 
 
 http://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
 
@@ -174,6 +174,10 @@ root@saltmaster:~$ apt-get install yamllint
 
 ### Creating a state file
 
+States describe what is to be done or, more specifically, the expected state of the minion.
+
+See https://docs.saltstack.com/en/latest/topics/tutorials/starting_states.html
+
 create a file  /srv/salt/nettools.sls like this:
 ```yaml
 ---
@@ -184,6 +188,32 @@ install_network_packages:
       - curl
 ...
 ```
+Let's describe that file a little bit:
+```yaml
+---
+# In theory (not mandatory though) a YAML file is starting with ---
+# This 'install_network_packages' is the ID for a set of data, and it is called the ID Declaration.
+# (It seems that it has to be unique if you have many of them).
+# Sometimes that ID can be used by the module as a parameter.
+install_network_packages:
+  # that state is to be implemented by the 'pkg' state
+  # (see https://docs.saltstack.com/en/latest/ref/states/all/salt.states.pkg.html)
+  # and it is implemented by one of the pkg modules
+  # (see https://docs.saltstack.com/en/latest/ref/modules/all/salt.modules.pkg.html)
+  # and you want packages to be installed (pkg.installed).
+  # You could specify pkg.removed for instance.
+  # You can also use the pkg state to add a custom repository.
+  pkg.installed:
+    # Then you have the list of "parameters" of the module
+    # Here there is only a single item: the pkgs parameter
+    - pkgs:
+      # That parameter is accepting a list of packages to be installed
+      - rsync
+      - curl
+# In theory (not mandatory though) a YAML file is ending with ...
+...
+```
+
 validate it with: 
 ```shell 
 root@saltmaster:~$ yamllint nettools.sls 
@@ -243,7 +273,7 @@ root@saltmaster:~$ salt-call --versions-report
 
 # Jinja temlates
 
-TO BE DONE
+(TBD)
 
 See http://jinja.pocoo.org/docs/2.10/templates/
 
@@ -256,7 +286,16 @@ or:
 salt-call --local  slsutil.renderer /srv/salt/users.sls 'jinja'
 ```
 
+# Salt ssh
 
+Salt can be used in agentless mode, without minion. 
 
+(TBD)
+
+# Salt cloud
+
+Salt can be used to manage (provisioning, starting, stopping) cloud instances (Amazon, Azure...)
+
+(TBD)
 
 
