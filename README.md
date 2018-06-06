@@ -1,9 +1,11 @@
 
-Salt documentation and getting started:
+Salt documentation, getting started, and best practises:
 
 https://docs.saltstack.com/en/latest/
 
 https://docs.saltstack.com/en/getstarted/
+
+https://docs.saltstack.com/en/latest/topics/best_practices.html
 
 # Installation
 
@@ -236,9 +238,15 @@ root@saltmaster:~$ salt 'mediacenter' state.apply
 
 ## The top file
 
+In Salt, the file which contains a mapping between groups of machines on a network and the configuration roles that should be applied to them is called a *top file*.
+
+See https://docs.saltstack.com/en/latest/ref/states/top.html
+
+There is one top file per environment (base, dev, prod) for instance. The 'base' environment is defined in Salt's default configuration. Those environments are either independent, or merged (see the */etc/salt/master* config).
 
 The top.sls file has to be located by default in */srv/salt/top.sls*
-It is used to define which state has to be applied on which minions:
+
+The top file is used to define which state has to be applied on which minions:
 ```yaml
 ---
 base:
@@ -246,6 +254,18 @@ base:
     - nettools
 ...
 ```
+Let's describe that file a little bit:
+```yaml
+---
+# This is the top file of the 'base' environment
+base:
+  # On all minions
+  '*':
+    # We want to apply the configuration defined in the nettools.sls file
+    - nettools
+...
+```
+
 
 You can locally run your state (if the config files are on the minion, which is generally not the case).
 
