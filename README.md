@@ -355,13 +355,24 @@ Here is a example pillar that is defining the name of apache package depending o
 
 ```HTML+Django 
 ---
-{% if grains['os'] == 'RedHat' %}
-apache: httpd
-git: git
-{% elif grains['os'] == 'Debian' %}
-apache: apache2
-git: git-core
-{% endif %}
+pkgs:
+	{% if grains['os'] == 'RedHat' %}
+	apache: httpd
+	git: git
+	{% elif grains['os'] == 'Debian' %}
+	apache: apache2
+	git: git-core
+	{% endif %}
+...
+```
+
+You can then use pillar data to write your states:
+
+```HTML+Django 
+---
+apache:
+  pkg.installed:
+    - name: {{ pillar['pkgs']['apache'] }}
 ...
 ```
 
