@@ -162,10 +162,6 @@ root@saltmaster:~$ salt '*' grains.ls
 root@saltmaster:~$ salt '*' grains.items
 ```
 
-# Pillars
-
-(TDB)
-
 # States
 
 Salt state files are in YAML, so you probably want to have a look at this getting started: 
@@ -295,13 +291,83 @@ get a report of dependency versions:
 root@saltmaster:~$ salt-call --versions-report
 ```
 
-# Jinja temlates
+# Pillars
 
-(TBD)
+See https://docs.saltstack.com/en/latest/topics/pillar/
+
+Pillar is an interface for Salt designed to offer global values that can be distributed to minions. 
+
+Pillars are not containing states, and they are not containing a description of what is to be done. Pillars are only containing data that will be used as an input for writing states.
+
+A pillar file is also an sls file written in YAML, and its *schema* (its structure) is up to you.
+
+By default, for the 'base' environment they are stored in the */srv/pillar* directory.
+
+For example here is a */srv/pillar/users.sls* pillar file describing users:
+```yaml 
+---
+users:
+  bob:
+    fullname: Bob
+    password: $6$axWX[...]/fjtG1
+    groups:
+      - users
+    ssh_auth:
+      - ssh-rsa AAAAB3NzaC1yc2EA[...]bcgnkzrKn/WkgfJfViYLw==
+    user_files:
+      enabled: true
+  alice:
+    fullname: Alice
+    password: $6$xr65i[...]6o7JWes1
+    groups:
+      - sudo
+      - users
+    user_files:
+      enabled: true
+...
+```
+The structure of this file is really up to you.
+
+Then you must have a top.sls file to reference it. For instance here is a */srv/pillar/top.sls* file that will state that this user configuration is for all machines:
+
+
+```yaml 
+---
+base:
+  '*':
+    - users
+...
+```
+
+# Jinja temlates
 
 See http://jinja.pocoo.org/docs/2.10/templates/
 
-validating a jinja file can be done using the slsutil.renderer module:
+Jinja is a template engine that is able to generate any text file using variables, expressions and directives.
+
+A Jinja template contains variables and/or expressions, which get replaced with values when a template is rendered; and tags, which control the logic of the template. The template syntax is heavily inspired by Django and Python.
+
+Within Salt, the Jinja engine will operate on grain and/or pillar data
+
+## Jinja pillars
+
+Here is a example pillar that is defining the name of apache package depending on grains:
+
+```HTML+Django 
+---
+{% if grains['os'] == 'RedHat' %}
+apache: httpd
+git: git
+{% elif grains['os'] == 'Debian' %}
+apache: apache2
+git: git-core
+{% endif %}
+...
+```
+
+## Validating Jinjas
+
+Validating a jinja file can be done using the slsutil.renderer module:
 ```shell 
 salt 'masterminion' slsutil.renderer /srv/salt/users.sls 'jinja'
 ```
@@ -309,6 +375,10 @@ or:
 ```shell 
 salt-call --local  slsutil.renderer /srv/salt/users.sls 'jinja'
 ```
+
+## Jinja states
+
+
 
 # Salt ssh
 
