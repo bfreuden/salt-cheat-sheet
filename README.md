@@ -368,7 +368,7 @@ pkgs:
 
 You can then use pillar data to write your states:
 
-```HTML+Django 
+```yaml
 ---
 apache:
   pkg.installed:
