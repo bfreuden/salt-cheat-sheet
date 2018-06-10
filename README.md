@@ -347,11 +347,11 @@ Jinja is a template engine that is able to generate any text file using variable
 
 A Jinja template contains variables and/or expressions, which get replaced with values when a template is rendered; and tags, which control the logic of the template. The template syntax is heavily inspired by Django and Python.
 
-Within Salt, the Jinja engine will operate on grain and/or pillar data
+Within Salt, the Jinja engine will operate on grain and/or pillar data.
 
 ## Jinja pillars
 
-Here is a example pillar that is defining the name of apache package depending on grains:
+Here is a */srv/pillar/pkgs.sls* pillar that is defining the name of packages depending on the grains data:
 
 ```HTML+Django 
 ---
@@ -365,16 +365,10 @@ pkgs:
 	{% endif %}
 ...
 ```
+That's an illustration of Jinja if statement:
 
-You can then use pillar data to write your states:
+http://jinja.pocoo.org/docs/2.10/templates/#if
 
-```yaml
----
-apache:
-  pkg.installed:
-    - name: {{ pillar['pkgs']['apache'] }}
-...
-```
 
 ## Validating Jinjas
 
@@ -387,9 +381,174 @@ or:
 salt-call --local  slsutil.renderer /srv/salt/users.sls 'jinja'
 ```
 
+Note that those command do not tell you if the *execution* of your file will succeed on minions, they will just tell you if there is a Jinja syntax error.
+
+
 ## Jinja states
 
-(TBD)
+Let's start with a simple */srv/salt/pkgs.sls* state that is based on the */srv/pillar/pkgs.sls* pillar.
+
+That example is an illustration of Jinja variables: http://jinja.pocoo.org/docs/2.10/templates/#variables
+
+```yaml
+---
+apache:
+  pkg.installed:
+    - name: {{ pillar['pkgs']['apache'] }}
+...
+```
+
+You can also create more complex states like this */srv/salt/users.sls* state based on the */srv/pillar/users.sls* we defined above.
+
+That example is an illustration of Jinja for control structure: http://jinja.pocoo.org/docs/2.10/templates/#for
+
+Let's start with a non-commented version, then we'll add comments:
+
+```HTML+Django 
+---
+{% for name, user in pillar.get('users', {}).items() if user.absent is not defined or not user.absent %}
+{%- if user == None -%}
+{%- set user = {} -%}
+{%- endif -%}
+{%- set user_files = salt['pillar.get'](('users:' ~ name ~ ':user_files'), {'enabled': False}) -%}
+{%- set home = user.get('home', "/home/%s" %name) -%}
+{%- set user_group = name -%}
+{% for group in user.get('groups', []) %}
+users_{{name}}_{{group}}_group:
+  group:
+    - name: {{group}}
+    - present
+{% endfor %}
+users_{{name}}_user:
+  group.present:
+    - name: {{ user_group }}
+    - gid: {{ user['uid'] }}
+  user.present:
+    - name: {{ name }}
+    - home: {{ home }}
+    - uid: {{ user['uid'] }}
+    - password: {{ user['password'] }}
+    - fullname: {{ user['fullname'] }}
+    - groups:
+        - {{ user_group }}
+        {% for group in user.get('groups', []) %}
+        - {{ group }}
+        {% endfor %}
+{% if 'ssh_auth' in user %}
+{% for auth in user['ssh_auth'] %}
+users_ssh_auth_{{name}}_{{loop.index0 }}:
+  ssh_auth.present:
+    - user: {{ name }}
+    - name: {{ auth }}
+{% endfor %}
+{% endif %}
+{% if user_files.enabled %}
+vimrc_{{name}}:
+  file.managed:
+    - name: {{home}}/.vimrc
+    - source: salt://files/.vimrc
+{% endif %}
+{% endfor %}
+...
+```
+
+Here is the commented out version:
+
+```HTML+Django 
+---
+# This is a Jinja template file (see http://jinja.pocoo.org/docs/2.10/templates/)
+# loop on dictionary that is below the 'users' key of the pillar
+# and use an empty dictionary {} if no user specified below users
+# then put the key of the current entry in the 'name' variable, 
+# and put the value of the current entry (a dictionary) in the 'user' variable.
+# maybe that code also allows to disable a user with the user.absent stuff?
+{% for name, user in pillar.get('users', {}).items() if user.absent is not defined or not user.absent %}
+
+# if the user dictionary is not defined, use an empty dictionary
+# the minus - sign means that this template line will not generate an empty line
+# (see "Whitespace Control" in http://jinja.pocoo.org/docs/2.10/templates/)
+{%- if user == None -%}
+{%- set user = {} -%}
+{%- endif -%}
+
+# here we are doing several dictionary lookups (users -> name -> user_files) to get the value of that 
+# user_files dictionary entry. If it is not defined, we will be using the {'enabled': False} dictionary.
+{%- set user_files = salt['pillar.get'](('users:' ~ name ~ ':user_files'), {'enabled': False}) -%}
+
+# here we are getting the value of the home key in the user dictionary, or building it from the
+# user name if it does not exist
+{%- set home = user.get('home', "/home/%s" %name) -%}
+
+# set the user_group variable to be the name of the user
+{%- set user_group = name -%}
+
+# at this point, we have only read pillar data, and set Jinja variables
+# now we will write salt states
+
+# first we loop on groups of the users (defined in the pillar)
+{% for group in user.get('groups', []) %}
+# and we are creating a salt state using the group module of salt
+# https://docs.saltstack.com/en/2017.7/ref/modules/all/salt.modules.groupadd.html#module-salt.modules.groupadd
+# it looks like salt state name has to be unique, and we make sure it is
+# by using the user name and the group and a bit of context around
+# so here we are declaring that each group of the user (declared in the pillar) must be present on the machine
+users_{{name}}_{{group}}_group:
+  group:
+    - name: {{group}}
+    - present
+{% endfor %}
+
+# then create the user
+users_{{name}}_user:
+  # maybe this is a trick to make sure the group is present before creating the user?
+  # actually I don't know the difference between "group - present" above and "group.present" below:
+  group.present:
+    - name: {{ user_group }}
+    - gid: {{ user['uid'] }}
+  # now we are making sure the user is present
+  # otherwise it will be created with the following properties
+  user.present:
+    - name: {{ name }}
+    - home: {{ home }}
+    - uid: {{ user['uid'] }}
+    - password: {{ user['password'] }}
+    - fullname: {{ user['fullname'] }}
+    - groups:
+        - {{ user_group }}
+        # again a loop on users groups
+        {% for group in user.get('groups', []) %}
+        - {{ group }}
+        {% endfor %}
+
+# now setup our public ssh keys
+{% if 'ssh_auth' in user %}
+{% for auth in user['ssh_auth'] %}
+# again, here we are trying hard to have unique names for salt states by using the loop index:
+users_ssh_auth_{{name}}_{{loop.index0 }}:
+  # here we are using the salt ssh_auth module 
+  # (see https://docs.saltstack.com/en/latest/ref/states/all/salt.states.ssh_auth.html)
+  # to add our public keys to the users
+  ssh_auth.present:
+    - user: {{ name }}
+    - name: {{ auth }}
+{% endfor %}
+{% endif %}
+
+# now we are going to copy some files in the home directory
+{% if user_files.enabled %}
+vimrc_{{name}}:
+  # we will do so using the file module of salt
+  # https://docs.saltstack.com/en/develop/ref/modules/all/salt.modules.file.html
+  file.managed:
+    - name: {{home}}/.vimrc
+    - source: salt://files/.vimrc
+{% endif %}
+
+# end loop on users
+{% endfor %}
+...
+```
+
 
 # Salt ssh
 
