@@ -388,7 +388,7 @@ Note that those command do not tell you if the *execution* of your file will suc
 
 Let's start with a simple */srv/salt/pkgs.sls* state that is based on the */srv/pillar/pkgs.sls* pillar.
 
-That example is an illustration of Jinja variables: http://jinja.pocoo.org/docs/2.10/templates/#variables
+This example is an illustration of Jinja variables: http://jinja.pocoo.org/docs/2.10/templates/#variables
 
 ```yaml
 ---
@@ -400,7 +400,7 @@ apache:
 
 You can also create more complex states like this */srv/salt/users.sls* state based on the */srv/pillar/users.sls* we defined above.
 
-That example is an illustration of Jinja for control structure: http://jinja.pocoo.org/docs/2.10/templates/#for
+This example is an illustration of Jinja for control structure: http://jinja.pocoo.org/docs/2.10/templates/#for
 
 Let's start with a non-commented version, then we'll add comments:
 
@@ -454,7 +454,7 @@ vimrc_{{name}}:
 
 Here is the commented out version:
 
-```HTML+Django 
+```yaml
 ---
 # This is a Jinja template file (see http://jinja.pocoo.org/docs/2.10/templates/)
 # loop on dictionary that is below the 'users' key of the pillar
