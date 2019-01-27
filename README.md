@@ -713,7 +713,9 @@ Then import the *saltmaster* public key into your own keyring:
 me@saltmaster:~/saltdev$ gpg --import /tmp/saltmaster_pubkey.gpg
 ```
 Now you can use the *saltmaster* public key to encrypt data:
+```shell
 me@saltmaster:~/saltdev$ echo -n "supersecret" | gpg --armor --batch --trust-model always --encrypt -r saltmaster
+```
 
 The encrypted data can be put into your yaml files. Just make sure the file is starting
 with *#!yaml|gpg* and use the following syntax (pay attention to the indentation! the file CANNOT start with --- like the others!):
