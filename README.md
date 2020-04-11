@@ -13,16 +13,20 @@ Examples below are on Ubuntu 18.04.
 
 Everything must (?) be run as root.
 
+```bash
+sudo -s
+```
+
 ## Salt master
 
-```shell
+```bash
 root@saltmaster:~$ apt-get install salt-master
 ```
 
 **WARNING**
 Note that the salt-master install will create the */srv* directory (with the root:root owner it seems)
 so chown it to salt:salt otherwise you will get silent errors when applying states!
-```shell
+```bash
 root@saltmaster:~$ chown -R salt:salt /srv
 ```
 
@@ -30,7 +34,7 @@ root@saltmaster:~$ chown -R salt:salt /srv
 
 A minion is a machine you want to control.
 
-```shell
+```bash
 root@mediacenter:~$ apt-get install salt-minion
 ```
 Minion configuration file is */etc/salt/minion*
@@ -52,7 +56,7 @@ Having a DNS is certainly a good idea instead of having IP adresses hardcoded in
 See https://docs.saltstack.com/en/latest/ref/configuration/index.html
 
 Get the public key of the master:
-```shell
+```bash
 root@saltmaster:~$ salt-key -F master
 ```
 
@@ -62,32 +66,32 @@ master_finger: 'b1:d4:c2:a1:82:c7:04:08:56:14:a1:dd:cc:2e:4a:d0:f2:9b:7c:9a:36:5
 ```
 
 Restart the minion:
-```shell
+```bash
 root@mediacenter:~$ service salt-minion restart
 ```
 
 Display the public key of the minion:
-```shell
+```bash
 root@mediacenter:~$ salt-call --local key.finger
 ```
 
 Show all unaccepted keys on the master:
-```shell
+```bash
 root@saltmaster:~$ salt-key -L
 ```
 
 accept the minion key (if equal to the actual minion key, see above):
-```shell
+```bash
 root@saltmaster:~$ salt-key -a mediacenter
 ```
 
 or to accept all in one:
-```shell
+```bash
 root@saltmaster:~$ salt-key -A
 ```
 
 test the connection (probably not testing the secure connection though):
-```shell
+```bash
 salt '*' test.ping
 ```
 
@@ -95,22 +99,22 @@ salt '*' test.ping
 See https://docs.saltstack.com/en/getstarted/fundamentals/remotex.html
 
 Run commands on all machines:
-```shell
+```bash
 root@saltmaster:~$ salt '*' cmd.run 'ls /tmp'
 ```
 
 show disk usage of all machines:
-```shell
+```bash
 root@saltmaster:~$ salt '*' disk.usage
 ```
 
 install a package on all machines:
-```shell
+```bash
 root@saltmaster:~$ salt '*' pkg.install git
 ```
 
 show network interfaces of all machines:
-```shell
+```bash
 root@saltmaster:~$ salt '*' network.interfaces
 ```
 
@@ -118,35 +122,35 @@ root@saltmaster:~$ salt '*' network.interfaces
 See https://docs.saltstack.com/en/getstarted/fundamentals/targeting.html
 
 targetting specific machines:
-```shell
+```bash
 root@saltmaster:~$ salt 'media*' disk.usage
 ```
 
 targetting using grains (grains are kind of properties of a salt host, either got from their own nature
 like their OS, or manually added):
-```shell
+```bash
 root@saltmaster:~$ salt -G 'os:Ubuntu' test.ping
 ```
 
 targetting using regex:
-```shell
+```bash
 root@saltmaster:~$ salt -E 'mediacenter[0-9]*' test.ping
 ```
 
 targetting using a list:
-```shell
+```bash
 root@saltmaster:~$ salt -L 'mediacenter,masterminion' test.ping
 ```
 
 targetting using a combination:
-```shell
+```bash
 root@saltmaster:~$ salt -C 'G@os:Ubuntu and *minion or S@192.168.50.*' test.ping
 ```
 
 # Copying files
 
 copying a ~/files.zip file (can large with --chunked) in the /tmp/ directory of minions:
-```shell
+```bash
 root@saltmaster:~$ salt-cp --chunked '*' ~/files.zip /tmp/
 ```
 
@@ -157,7 +161,7 @@ See https://docs.saltstack.com/en/latest/topics/grains/
 Grains are properties either got by Salt from the env, or manually set.
 
 Listing grains:
-```shell
+```bash
 root@saltmaster:~$ salt '*' grains.ls
 root@saltmaster:~$ salt '*' grains.items
 ```
@@ -170,7 +174,7 @@ http://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
 
 And you probably want to install a YAML validator:
 
-```shell
+```bash
 root@saltmaster:~$ apt-get install yamllint
 ```
 
@@ -217,22 +221,22 @@ install_network_packages:
 ```
 
 validate it with:
-```shell
+```bash
 root@saltmaster:~$ yamllint nettools.sls
 ```
 
 Apply it on a minion:
-```shell
+```bash
 root@saltmaster:~$ salt 'mediacenter' state.apply nettools
 ```
 
 Calling state.apply with no arguments starts a highstate (global state application?).
 Either on all minions:
-```shell
+```bash
 root@saltmaster:~$ salt '*' state.apply
 ```
 Or on specific ones:
-```shell
+```bash
 root@saltmaster:~$ salt 'mediacenter' state.apply
 ```
 
@@ -271,32 +275,32 @@ You can locally run your state (if the config files are on the minion, which is 
 
 Let's assume with have a minion of the saltmaster machine too. It is very convenient to test the configuration.
 You can show the state of a minion (--local is a debug feature that makes the minion read state files locally instead of asking them to the master):
-```shell
+```bash
 root@saltmaster:~$ salt-call --local state.show_highstate
 ```
 
 You can report what would be done if the state "executed" on the minion (dry run):
-```shell
+```bash
 root@saltmaster:~$ salt-call --local state.highstate test=True
 ```
 
 Of course on other hosts, the minion would not be able to access new files locally, so:
-```shell
+```bash
 root@saltminion:~# salt-call state.highstate test=True
 ```
 
 That test on the mediacenter host can also be run from the salt master (where you're developing):
-```shell
+```bash
 salt 'saltminion' state.apply test=True
 ```
 
 Ask the local minion its "vision" of top:
-```shell
+```bash
 root@saltmaster:~$ salt 'minion' state.show_top
 ```
 
 Get a report of dependency versions:
-```shell
+```bash
 root@saltmaster:~$ salt-call --versions-report
 ```
 
@@ -396,11 +400,11 @@ https://git.mauras.ch/salt/saltclass/src/branch/master/examples
 ## Validating Jinjas
 
 Validating a jinja file can be done using the slsutil.renderer module:
-```shell
+```bash
 salt 'masterminion' slsutil.renderer /srv/salt/users.sls 'jinja'
 ```
 or:
-```shell
+```bash
 salt-call --local  slsutil.renderer /srv/salt/users.sls 'jinja'
 ```
 
@@ -615,7 +619,7 @@ gitfs_remotes:
 ```
 
 Then restart the salt master:
-```shell
+```bash
 root@saltmaster:~$ service salt-master restart
 ```
 
@@ -664,17 +668,17 @@ I am generally not editing my salt files on place and editing file in my home di
 then copying them into /srv (for many reasons, but mostly because of the salt:salt owner of the files).
 
 So let's rsync files from my home directory to /srv and change the owner:
-```shell
+```bash
 root@saltmaster:~/saltdev/srv# rsync -avz --exclude '.git' /home/bruno/saltdev/srv/ /srv/ ; chown -R salt:salt /srv
 ```
 
 Now let's test that before actually deploying it:
-```shell
+```bash
 root@saltmaster:~/saltdev/srv/pillar# salt 'mediacenter' state.apply test=True
 ```
 
 If you have used Jinja you can validate your pillar with:
-```shell
+```bash
 root@saltmaster:~/saltdev/srv/pillar# salt-call --local  slsutil.renderer /srv/pillar/samba.sls 'jinja'
 ```
 
@@ -686,7 +690,7 @@ This guy has been incredibly helpful:
 https://gist.github.com/vrillusions/5484422
 
 This is how to set this up (creates a *saltmaster* key):
-```shell
+```bash
 root@saltmaster:~/saltdev/srv/pillar#
 mkdir -p /etc/salt/gpgkeys
 chmod 0700 /etc/salt/gpgkeys
@@ -703,17 +707,17 @@ gpg --batch --gen-key /tmp/genkey-batch
 ```
 
 Then export the *saltmaster* public key:
-```shell
+```bash
 root@saltmaster:~/saltdev/srv/pillar#
 gpg --homedir /etc/salt/gpgkeys --armor --export saltmaster > /tmp/saltmaster_pubkey.gpg
 ```
 
 Then import the *saltmaster* public key into your own keyring:
-```shell
+```bash
 me@saltmaster:~/saltdev$ gpg --import /tmp/saltmaster_pubkey.gpg
 ```
 Now you can use the *saltmaster* public key to encrypt data:
-```shell
+```bash
 me@saltmaster:~/saltdev$ echo -n "supersecret" | gpg --armor --batch --trust-model always --encrypt -r saltmaster
 ```
 
@@ -747,7 +751,230 @@ users:
 
 Salt can be used in agentless mode, without minion.
 
-(TBD)
+https://docs.saltstack.com/en/latest/topics/ssh/
+
+One probably has to think twice before using salt-ssh because Ansible might be a best contender here...
+
+Salt is an agent-based solution by design: salt master is a server, salt minions are servers.
+When minions are applying a formula requiring files, they can simply download them from the server.
+
+With salt-ssh when a file is required by a formula, it must be sent in along with the formula. 
+Analyzing formulas to find files is apparently a difficult task when Jinja is involved. 
+So salt-ssh has an --extra-filerefs option to manually specify a file to be included. 
+But doing so places the burder on the user of the formula (who doesn't know it!).
+
+On top of that --extra-filerefs doesn't seem to work well when targeting a file on gitfs.
+So there are times you can't simply use gitfs. So you have to clone the formula and declare it file roots
+of your salt environment.
+
+see: https://github.com/saltstack/salt/issues/19564
+
+## Installation (as non root user)
+The following setup is a bit complex but it seems it is required to be able to run salt-ssh in non root.
+
+First install salt-ssh:
+```bash
+sudo apt-get install salt-ssh
+```
+
+Then create salt_setup (the name is up to you) in your home directory:
+```bash
+cd
+mkdir salt_setup
+cd salt_setup
+mkdir -p {config,salt/{files,templates,states,pillar,formulas,pki/master,logs}}
+mkdir cache
+touch ssh.log
+cd
+```
+
+Then copy the content of /etc/salt here:
+```bash
+cp -rp /etc/salt/* ~/salt_setup/
+chown $USER. -R ~/salt_setup
+```
+
+Finally create master and Saltfile files:
+```bash
+cat <<EOT >> ~/salt_setup/master
+root_dir: "/home/$USER/salt_setup"
+pki_dir: "pki"
+cachedir: "cache"
+log_file: "salt-ssh.log"
+
+file_roots:
+  base:
+    - /home/$USER/salt_setup/salt
+
+fileserver_backend:
+  - roots
+  - gitfs
+EOT
+
+cat <<EOT >> ~/salt_setup/Saltfile
+salt-ssh:
+  config_dir: "/home/$USER/salt_setup/"
+  log_file: "/home/$USER/salt_setup/ssh.log"
+  pki_dir: "/home/$USER/salt_setup/pki"
+  cachedir: "/home/$USER/salt_setup/cache"
+  roster_file: "/home/$USER/salt_setup/roster"
+#  ssh_wipe: True
+EOT
+```
+
+## Configuring managed servers
+
+Declare servers in roster file:
+```bash
+for server in server1 server2 server3; do \
+echo "$server:" >> ~/salt_setup/roster ; \
+echo "  host: $server" >> ~/salt_setup/roster ; \
+echo "  user: $USER" >> ~/salt_setup/roster ; \
+echo "  sudo: true" >> ~/salt_setup/roster ; \
+echo "" >> ~/salt_setup/roster ; \
+done
+```
+
+It must give something like this:
+/etc/salt/roster
+```yaml
+server1:
+  host: server1
+  user: me
+  sudo: true
+
+server2:
+  host: server2
+  user: me
+  sudo: true
+
+server3:
+  host: server3
+  user: me
+  sudo: true
+```
+
+Please note that the procedure below is not the recommended way of installing keys and salt-ssh can do that for you, see:
+https://youtu.be/qWG5pI8Glbs
+
+Salt-ssh can also ask for your password if you prefer not deploying your key.
+
+Add SSH key on your freshly installed machines:
+```bash
+for server in server1 server2 server3; do \
+ssh $USER@$server "mkdir .ssh ; chmod 700 .ssh ; echo \"`cat ~/.ssh/id_rsa.pub`\" >> .ssh/authorized_keys" ; \
+done
+```
+
+Then enable sudo NOPASSWD for your user on all machines 
+```bash
+for server in server1 server2 server3; do \
+ssh -t $USER@$server "echo '$USER ALL=(ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers" ; \
+done
+```
+
+## Running salt-ssh
+
+Note: to run salt-ssh as non-root you must be in the ~/salt_setup directory.
+```bash
+cd ~/salt_setup
+```
+
+Finally run your first salt-ssh command:
+```bash
+salt-ssh -i server2 disk.usage
+```
+
+Now let's install the cowsay package on all systems:
+```bash
+salt-ssh -i "*" pkg.install cowsay
+```
+
+And finally run a command on one of the machine:
+```bash
+salt-ssh -i server1 -r '/usr/games/cowsay "Hello me lad!"'
+```
+
+If you don't want to leave any trace on the system you can use the -W wipe option:
+```bash
+salt-ssh -i server1 -W -r '/usr/games/cowsay "Hello me lad!"'
+```
+
+## Agentless configuration management using salt-ssh
+
+Since salt-ssh 2017 delivered with Ubuntu 18.04 is too old and has a bug with gitfs, the following
+procedure has been done by installing a more recent version of salt-ssh using pip:
+```bash
+conda create -n salt
+conda activate salt
+conda install python=3.7
+pip install salt-ssh
+pip install pygit2
+``` 
+
+Here we'll install apache on all machines.
+
+First clone the formula (you should have your own fork, see Salt Formulas above) since extra filerefs don't work on gitfs:
+```bash
+cd ~/salt_setup/salt/formulas
+git clone https://github.com/saltstack-formulas/apache-formula.git
+rm -rf ~/salt_setup/salt/formulas/apache-formula/.git
+EOT
+```
+
+Declare the formula and required filerefs in your master configuration (~/salt_setup/master):
+```yaml
+file_roots:
+  base:
+    - /home/bruno/salt_setup/salt
+    - /home/bruno/salt_setup/salt/formulas/apache-formula
+
+extra_filerefs:
+  - salt://apache/map.jinja
+```
+
+Download the example apache pillar:
+```bash
+curl -o ~/salt_setup/salt/pillar/apache.sls https://raw.githubusercontent.com/saltstack-formulas/apache-formula/master/pillar.example
+```
+
+Create the top.sls:
+```bash
+cat <<EOT >> ~/salt_setup/salt/top.sls
+---
+base:
+  '*':
+    - apache
+EOT
+```
+
+Then go into your salt directory:
+```bash
+cd ~/salt_setup
+```
+
+Install apache on all machines:
+```bash
+salt-ssh '*' state.apply 
+```
+
+Test the installation of your apache:
+```bash
+curl server1/index.html
+```
+
+To uninstall apache, modify the top.sls:
+Create the top.sls:
+```yaml
+---
+base:
+  '*':
+    - apache.uninstall
+```
+Then apply the state on all machines:
+```bash
+salt-ssh '*' state.apply 
+```
 
 # Salt cloud
 
