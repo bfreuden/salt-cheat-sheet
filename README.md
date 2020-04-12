@@ -862,10 +862,20 @@ done
 ```
 
 Please note that the procedure below is not the recommended way of installing keys 
-since salt-ssh can do that for you during the first salt-ssh invocation (see https://youtu.be/qWG5pI8Glbs). 
-Salt-ssh can also ask for your password if you prefer not deploying your key.
+since salt-ssh can do that for you during the first salt-ssh invocation (see https://youtu.be/qWG5pI8Glbs).
+Salt-ssh can also keeping prompting for your password if you prefer not deploying your key.
+Installing a key with Salt can be done like this although it is not clear to which public key is actually installed 
+(looks like salt has its own key pair):
 
-Add SSH key on your freshly installed machines:
+```bash
+me@laptop:~/salt_setup$ salt-ssh -i server1 pkg.install cowsay
+Permission denied for host server1, do you want to deploy the salt-ssh key? (password required):
+[Y/n] Y
+Password for me@server1: 
+```
+That's why I prefer the method below.
+
+Deploying SSH key on your freshly installed machines:
 ```bash
 for server in server1 server2 server3; do \
 ssh $USER@$server "mkdir .ssh ; chmod 700 .ssh ; echo \"`cat ~/.ssh/id_rsa.pub`\" >> .ssh/authorized_keys" ; \
