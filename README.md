@@ -854,22 +854,21 @@ server3:
   sudo: true
 ```
 
-Please note that the procedure below is not the recommended way of installing keys and salt-ssh can do that for you, see:
-https://youtu.be/qWG5pI8Glbs
+Then enable sudo NOPASSWD for your user on all machines 
+```bash
+for server in server1 server2 server3; do \
+ssh -t $USER@$server "echo '$USER ALL=(ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers" ; \
+done
+```
 
+Please note that the procedure below is not the recommended way of installing keys 
+since salt-ssh can do that for you during the first salt-ssh invocation (see https://youtu.be/qWG5pI8Glbs). 
 Salt-ssh can also ask for your password if you prefer not deploying your key.
 
 Add SSH key on your freshly installed machines:
 ```bash
 for server in server1 server2 server3; do \
 ssh $USER@$server "mkdir .ssh ; chmod 700 .ssh ; echo \"`cat ~/.ssh/id_rsa.pub`\" >> .ssh/authorized_keys" ; \
-done
-```
-
-Then enable sudo NOPASSWD for your user on all machines 
-```bash
-for server in server1 server2 server3; do \
-ssh -t $USER@$server "echo '$USER ALL=(ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers" ; \
 done
 ```
 
@@ -964,7 +963,6 @@ curl server1/index.html
 ```
 
 To uninstall apache, modify the top.sls:
-Create the top.sls:
 ```yaml
 ---
 base:
