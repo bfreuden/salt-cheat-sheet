@@ -7,6 +7,33 @@ https://docs.saltstack.com/en/getstarted/
 
 https://docs.saltstack.com/en/latest/topics/best_practices.html
 
+- [Installation](#installation)
+  * [Salt master](#salt-master)
+  * [Salt minion](#salt-minion)
+  * [Key configuration](#key-configuration)
+- [Remote command execution](#remote-command-execution)
+- [Targetting](#targetting)
+- [Copying files](#copying-files)
+- [Grains](#grains)
+- [States](#states)
+    + [Creating a state file](#creating-a-state-file)
+  * [The top file](#the-top-file)
+- [Pillars](#pillars)
+- [Jinja temlates](#jinja-temlates)
+  * [Jinja pillars](#jinja-pillars)
+  * [Validating Jinjas](#validating-jinjas)
+  * [Jinja states](#jinja-states)
+- [Salt formulas](#salt-formulas)
+- [Storing sensitive data (passwords)](#storing-sensitive-data--passwords-)
+- [Salt ssh](#salt-ssh)
+  * [Installation (as non root user)](#installation--as-non-root-user-)
+  * [Configuring managed servers](#configuring-managed-servers)
+  * [Running salt-ssh](#running-salt-ssh)
+  * [Agentless configuration management using salt-ssh](#agentless-configuration-management-using-salt-ssh)
+- [Salt cloud](#salt-cloud)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 # Installation
 
 Examples below are on Ubuntu 18.04.
@@ -854,7 +881,7 @@ server3:
   sudo: true
 ```
 
-Then enable sudo NOPASSWD for your user on all machines 
+Then enable sudo NOPASSWD for your user on all (ubuntu) machines:
 ```bash
 for server in server1 server2 server3; do \
 ssh -t $USER@$server "echo '$USER ALL=(ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers" ; \
@@ -879,6 +906,12 @@ Deploying SSH key on your freshly installed machines:
 ```bash
 for server in server1 server2 server3; do \
 ssh $USER@$server "mkdir .ssh ; chmod 700 .ssh ; echo \"`cat ~/.ssh/id_rsa.pub`\" >> .ssh/authorized_keys" ; \
+done
+```
+It would probably better with (but not tested):
+```bash
+for server in server1 server2 server3; do \
+ssh-copy-id -i ~/.ssh/id_rsa.pub $USER@$server ; \
 done
 ```
 
